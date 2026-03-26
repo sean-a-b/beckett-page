@@ -6,7 +6,7 @@ body {
     padding-top: 84px;
     padding-left: 20px;
 }
-
+/*
 .site-logo {
     height: 80px;
     position: fixed;
@@ -15,7 +15,7 @@ body {
     cursor: pointer;
     z-index: 1000;
 }
-
+*/
 .site-header {
     width: 100%;
     height: 84px;
@@ -31,15 +31,18 @@ body {
 .site-header .site-logo {
     height: 60px;
     cursor: pointer;
+    position: fixed;
+    top: 12px;
+    left: 12px;
 }
 
 .site-nav ul {
     font-size: 18pt;
     list-style: none;
-    margin: 104px;
+    margin: 112px;
     padding: 0;
     display: flex;
-    gap: 30px;
+    gap: 40px;
 }
 
 .site-nav a {
