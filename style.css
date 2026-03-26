@@ -5,3 +5,11 @@ body {
     color: #440000;
 }
 
+.site-logo {
+    height: 50px;
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    cursor: pointer;
+    z-index: 1000;
+}
