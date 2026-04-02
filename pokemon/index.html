@@ -20,31 +20,32 @@
           
             /* Add extra line space above the Start Game button */
             #nextBtn {
-                margin-top: 1em;       /* space between main buttons and Start Game */
+                margin-top: 2em;       /* space between main buttons and Start Game */
                 display: block;        /* ensures it starts on a new line */
             }
+            
           </style>
-          
+
     </head>
 
-    <body>
+<body>
 
-        <div id="header-placeholder"></div>
-    
-        <h1>Pokémon Stat Game</h1>
-    
-        <div id="game">
-            <p id="info"></p>
-            <p id="pokemon"></p>
-    
-            <div id="choices"></div>
-    
-            <button id="nextBtn">Start Game</button>
-        </div>
-    
-        <script src="/load-header.js"></script>
-        <script src="/pokemon/script.js"></script>
-    
-    </body>
+    <div id="header-placeholder"></div>
+
+    <h1>Pokémon Stat Game</h1>
+
+    <!-- New Game button moved here -->
+    <button id="nextBtn">New Game</button>
+
+    <div id="game">
+        <p id="info"></p>
+        <p id="pokemon"></p>
+        <div id="choices"></div>
+    </div>
+
+    <script src="/load-header.js"></script>
+    <script src="/pokemon/script.js"></script>
+
+</body>
 
 </html>
