@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel = "stylesheet" href = "/style.css"> 
+
+        <!-- This is where the page title goes. -->
+        <title>
+            Pokemon Stat Game 
+        </title>
+
+
+        <link rel = "icon" type = "image/png" href = "/logo.png"> <!-- This is the logo in the page title. -->
+
+        <style>
+            /* Add space between main buttons (stat buttons) */
+            #choices button {
+                margin-right: 0.5em;   /* horizontal spacing between buttons */
+                margin-bottom: 0.5em;  /* vertical spacing if wrapping */
+            }
+          
+            /* Add extra line space above the Start Game button */
+            #nextBtn {
+                margin-top: 1em;       /* space between main buttons and Start Game */
+                display: block;        /* ensures it starts on a new line */
+            }
+          </style>
+          
+    </head>
+
+    <body>
+
+        <div id="header-placeholder"></div>
+    
+        <h1>Pokémon Stat Game</h1>
+    
+        <div id="game">
+            <p id="info"></p>
+            <p id="pokemon"></p>
+    
+            <div id="choices"></div>
+    
+            <button id="nextBtn">Start Game</button>
+        </div>
+    
+        <script src="/load-header.js"></script>
+        <script src="/pokemon/script.js"></script>
+    
+    </body>
+
+</html>
