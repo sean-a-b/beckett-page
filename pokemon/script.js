@@ -149,7 +149,7 @@ function endGame() {
     let resultText = `Final: ${current} | Target: ${target} | Diff: ${diff}\n`;
 
     if (diff === 0) resultText += "Perfect!";
-    else if (diff <= 10) resultText += `Just ${} off? Okay, thats pretty good! You win!`
+    else if (diff <= 10) resultText += `Just ${diff} off? Okay, thats pretty good! You win!`
     else if (diff <= 25) resultText += "Not terrible - half marks.";
     else if (diff <= 50) resultText += "I mean, it looks like you tried, I guess.";
     else resultText += `You know you are trying to get close to the target right? You missed by ${diff}...`;
