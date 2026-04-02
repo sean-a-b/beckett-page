@@ -76,6 +76,7 @@ function nextRound() {
         return;
     }
 
+    // Pick a unique Pokémon
     let dex = Math.floor(Math.random() * (pokemon_all.length - 1)) + 1;
     while (!pokemon_all[dex] || pokemon_all[dex].length === 0 || used_dex.has(dex)) {
         dex = Math.floor(Math.random() * (pokemon_all.length - 1)) + 1;
@@ -90,13 +91,13 @@ function nextRound() {
 
     let choicesDiv = document.getElementById("choices");
 
-    // stat buttons
+    // Create stat buttons
     for (let i = 1; i <= 6; i++) {
         if (!used_stats.has(String(i))) {
             let btn = document.createElement("button");
             btn.innerText = statsNames[i-1];
 
-            // spacing
+            // spacing between buttons
             btn.style.marginRight = "0.5em";
             btn.style.marginBottom = "0.5em";
 
@@ -127,10 +128,13 @@ function nextRound() {
         }
     }
 
-    // skip button
+    // Add skip button below stat buttons
     if (skips > 0) {
         let skipBtn = document.createElement("button");
         skipBtn.innerText = "Skip";
+
+        skipBtn.style.display = "block"; // ensures it is on a new line
+        skipBtn.style.marginTop = "0.5em";
 
         skipBtn.onclick = () => {
             skips--;
