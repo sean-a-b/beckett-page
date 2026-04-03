@@ -4,8 +4,12 @@ let target, current, rounds, skips;
 let used_dex, used_stats;
 let r;
 
+let round_pokemon = [];
+let player_choices = [];
+
 const statsNames = ["HP", "Attack", "Defense", "Sp. Atk", "Sp. Def", "Speed"];
 
+// ---------- LOAD DATA ----------
 async function loadData() {
     const response = await fetch("/pokemon/stats.csv");
     const text = await response.text();
@@ -47,6 +51,7 @@ async function loadData() {
     }
 }
 
+// ---------- START GAME ----------
 function startGame() {
     target = Math.floor(Math.random() * 201) + 400;
     current = 0;
@@ -56,18 +61,22 @@ function startGame() {
     used_dex = new Set();
     used_stats = new Set();
 
+    round_pokemon = [];
+    player_choices = [];
+
     r = 0;
 
     nextRound();
 }
 
+// ---------- UI ----------
 function updateInfo() {
     document.getElementById("info").innerText =
         `Round ${r+1}/6 | Target: ${target} | Current: ${current} | Remaining: ${target - current} | Skips: ${skips}`;
 }
 
+// ---------- MAIN LOOP ----------
 function nextRound() {
-    // Clear previous round display
     document.getElementById("pokemon").innerText = "";
     document.getElementById("choices").innerHTML = "";
 
@@ -76,7 +85,6 @@ function nextRound() {
         return;
     }
 
-    // Pick a unique Pokémon
     let dex = Math.floor(Math.random() * (pokemon_all.length - 1)) + 1;
     while (!pokemon_all[dex] || pokemon_all[dex].length === 0 || used_dex.has(dex)) {
         dex = Math.floor(Math.random() * (pokemon_all.length - 1)) + 1;
@@ -91,30 +99,29 @@ function nextRound() {
 
     let choicesDiv = document.getElementById("choices");
 
-    // Create stat buttons
-    for (let i = 1; i <= 6; i++) {
-        if (!used_stats.has(String(i))) {
+    for (let i = 0; i < 6; i++) {
+        if (!used_stats.has(i)) {
             let btn = document.createElement("button");
-            btn.innerText = statsNames[i-1];
+            btn.innerText = statsNames[i];
 
-            // spacing between buttons
             btn.style.marginRight = "0.5em";
             btn.style.marginBottom = "0.5em";
 
             btn.onclick = () => {
-                used_stats.add(String(i));
-                let value = pokemon[i+1];
+                used_stats.add(i);
+
+                let value = pokemon[i + 2];
                 current += value;
 
-                // remove stat buttons
+                round_pokemon.push(pokemon);
+                player_choices.push(i);
+
                 choicesDiv.innerHTML = "";
 
-                // show in-page output
                 const output = document.createElement("p");
-                output.innerText = `${name}'s ${statsNames[i-1]} was ${value}!`;
+                output.innerText = `${name}'s ${statsNames[i]} was ${value}!`;
                 choicesDiv.appendChild(output);
 
-                // add "OK" button to continue
                 const okBtn = document.createElement("button");
                 okBtn.innerText = "OK";
                 okBtn.onclick = () => {
@@ -128,12 +135,12 @@ function nextRound() {
         }
     }
 
-    // Add skip button below stat buttons
+    // Skip (reroll)
     if (skips > 0) {
         let skipBtn = document.createElement("button");
         skipBtn.innerText = "Skip";
 
-        skipBtn.style.display = "block"; // ensures it is on a new line
+        skipBtn.style.display = "block";
         skipBtn.style.marginTop = "0.5em";
 
         skipBtn.onclick = () => {
@@ -145,7 +152,60 @@ function nextRound() {
     }
 }
 
+// ---------- PERMUTATIONS ----------
+function getPermutations(arr) {
+    if (arr.length === 0) return [[]];
+
+    let result = [];
+
+    for (let i = 0; i < arr.length; i++) {
+        let rest = arr.slice(0, i).concat(arr.slice(i + 1));
+        let perms = getPermutations(rest);
+
+        for (let p of perms) {
+            result.push([arr[i], ...p]);
+        }
+    }
+
+    return result;
+}
+
+// ---------- BEST SOLUTION (TRUE MATCHING) ----------
+function findBestScore() {
+    const n = round_pokemon.length;
+
+    const perms = getPermutations([...Array(n).keys()]);
+
+    let bestDiff = Infinity;
+    let bestTotal = 0;
+    let bestAssignment = null;
+
+    for (let perm of perms) {
+        let total = 0;
+
+        for (let statIndex = 0; statIndex < n; statIndex++) {
+            let pokemonIndex = perm[statIndex];
+            let pokemon = round_pokemon[pokemonIndex];
+
+            total += pokemon[statIndex + 2];
+        }
+
+        let diff = Math.abs(target - total);
+
+        if (diff < bestDiff) {
+            bestDiff = diff;
+            bestTotal = total;
+            bestAssignment = perm;
+        }
+    }
+
+    return { bestTotal, bestDiff, bestAssignment };
+}
+
+// ---------- END GAME ----------
 function endGame() {
+    document.getElementById("info").innerText = "";
+
     document.getElementById("choices").innerHTML = "";
     document.getElementById("pokemon").innerText = "";
 
@@ -153,19 +213,60 @@ function endGame() {
     let resultText = `Final: ${current} | Target: ${target} | Diff: ${diff}\n`;
 
     if (diff === 0) resultText += "Perfect!";
-    else if (diff <= 10) resultText += `Just ${diff} off? Okay, thats pretty good! You win!`
-    else if (diff <= 25) resultText += "Not terrible - half marks.";
-    else if (diff <= 50) resultText += "I mean, it looks like you tried, I guess.";
-    else resultText += `You know you are trying to get close to the target right? You missed by ${diff}...`;
+    else if (diff <= 10) resultText += `Just ${diff} off? Pretty good!`;
+    else if (diff <= 25) resultText += "Not terrible.";
+    else if (diff <= 50) resultText += "Could be better.";
+    else resultText += `You missed by ${diff}...`;
+
+    if (round_pokemon.length > 0) {
+        const best = findBestScore();
+
+        resultText += `\n\nBest Possible: ${best.bestTotal} (Diff: ${best.bestDiff})\n\n`;
+
+        // Header
+        resultText +=
+            "Pokemon".padEnd(18) +
+            "Your Stat".padEnd(15) +
+            "Value".padEnd(8) +
+            "Optimal Stat".padEnd(18) +
+            "Value\n";
+
+        resultText += "-".repeat(70) + "\n";
+
+        // Build reverse mapping
+        let pokemonToStat = Array(round_pokemon.length);
+        for (let statIndex = 0; statIndex < round_pokemon.length; statIndex++) {
+            let pokemonIndex = best.bestAssignment[statIndex];
+            pokemonToStat[pokemonIndex] = statIndex;
+        }
+
+        // Rows
+        for (let i = 0; i < round_pokemon.length; i++) {
+            let p = round_pokemon[i];
+
+            let yourStatIndex = player_choices[i];
+            let yourStatName = statsNames[yourStatIndex];
+            let yourValue = p[yourStatIndex + 2];
+
+            let optStatIndex = pokemonToStat[i];
+            let optStatName = statsNames[optStatIndex];
+            let optValue = p[optStatIndex + 2];
+
+            resultText +=
+                p[1].padEnd(18) +
+                yourStatName.padEnd(15) +
+                String(yourValue).padEnd(8) +
+                optStatName.padEnd(18) +
+                String(optValue) + "\n";
+        }
+    }
 
     const choicesDiv = document.getElementById("choices");
-    const result = document.createElement("p");
+    const result = document.createElement("pre"); // ✅ preserves spacing
     result.innerText = resultText;
     choicesDiv.appendChild(result);
 }
 
-// Attach to start button
+// ---------- INIT ----------
 document.getElementById("nextBtn").onclick = startGame;
-
-// Load CSV and prepare game
 loadData();
