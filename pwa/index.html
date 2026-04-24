@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="theme-color" content="#0f172a" />
+  <title>Journal</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app">
+    <header class="hero card">
+      <div>
+        <p class="eyebrow">Private journal</p>
+        <h1>Journal</h1>
+        <p class="hero-copy">Log what happened, rate it, and keep only what matters.</p>
+      </div>
+      <div class="hero-badge">IndexedDB • offline-first</div>
+    </header>
+
+    <section class="stats-grid">
+      <article class="card stat-card">
+        <span class="stat-label">Current streak</span>
+        <strong id="streakValue" class="stat-value">0</strong>
+        <span id="streakDetail" class="stat-detail">days in a row</span>
+      </article>
+
+      <article class="card stat-card">
+        <span class="stat-label">Best streak</span>
+        <strong id="bestStreakValue" class="stat-value">0</strong>
+        <span class="stat-detail">days in a row</span>
+      </article>
+
+      <article class="card stat-card">
+        <span class="stat-label">Today’s positives</span>
+        <strong id="todayPositiveValue" class="stat-value">0</strong>
+        <span class="stat-detail">saved entries</span>
+      </article>
+
+      <article class="card stat-card">
+        <span class="stat-label">Today’s archive</span>
+        <strong id="todayArchiveValue" class="stat-value">0</strong>
+        <span class="stat-detail">saved entries</span>
+      </article>
+    </section>
+
+    <section class="card composer-card">
+      <div class="section-heading">
+        <h2>Quick add</h2>
+        <span class="section-hint">Write, rate, submit.</span>
+      </div>
+
+      <textarea id="entryText" placeholder="What did you do?"></textarea>
+
+      <div class="rating-wrap">
+        <div class="rating-label-row">
+          <label>Rating</label>
+          <span class="section-hint">0–4 discard • 5–6 archive • 7–10 keep</span>
+        </div>
+        <div id="ratingButtons" class="rating-buttons" aria-label="Rating selector"></div>
+      </div>
+
+      <div class="composer-actions">
+        <button id="submitBtn" class="primary-btn" type="button">Save entry</button>
+      </div>
+
+      <p id="message" class="message" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="card recall-card">
+      <div class="section-heading">
+        <h2>Random recall</h2>
+        <button id="randomButton" class="ghost-btn" type="button">Another one</button>
+      </div>
+      <blockquote id="recallText" class="recall-text">Add a positive entry and I’ll pull one back at random.</blockquote>
+      <div id="recallMeta" class="recall-meta"></div>
+    </section>
+
+    <section class="card history-card">
+      <div class="section-heading">
+        <h2>History</h2>
+        <div class="history-controls">
+          <button id="todayBtn" class="ghost-btn" type="button">Today</button>
+          <button id="exportBtn" class="ghost-btn" type="button">Export JSON</button>
+          <input id="datePicker" type="date" />
+        </div>
+      </div>
+
+      <div id="selectedDaySummary" class="day-summary"></div>
+
+      <div class="history-grid">
+        <div class="history-column">
+          <h3>Positives</h3>
+          <ul id="positiveList" class="entry-list"></ul>
+        </div>
+
+        <div class="history-column">
+          <h3>Archive</h3>
+          <ul id="archiveList" class="entry-list"></ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="card calendar-card">
+      <div class="section-heading">
+        <div>
+          <h2>Calendar</h2>
+          <p id="calendarSummary" class="section-hint"></p>
+        </div>
+
+        <div class="month-controls">
+          <button id="prevMonthBtn" class="ghost-btn" type="button">←</button>
+          <span id="monthLabel" class="month-label"></span>
+          <button id="nextMonthBtn" class="ghost-btn" type="button">→</button>
+        </div>
+      </div>
+
+      <div class="weekday-row">
+        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+      </div>
+
+      <div id="calendarGrid" class="calendar-grid"></div>
+    </section>
+
+    <section class="card graph-card">
+      <div class="section-heading">
+        <div>
+          <h2>Positive momentum</h2>
+          <p class="section-hint">Centered 7-day rolling total.</p>
+        </div>
+        <div id="graphSummary" class="graph-summary"></div>
+      </div>
+
+      <div class="graph-wrap">
+        <svg id="graphSvg" viewBox="0 0 1000 320" preserveAspectRatio="none" aria-label="Positive momentum chart"></svg>
+      </div>
+    </section>
+  </main>
+
+  <script src="db.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
