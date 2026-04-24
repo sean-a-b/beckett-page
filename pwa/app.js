@@ -293,8 +293,8 @@ function renderSelectedDayView() {
   const positiveCount = positiveEntries.length;
   const archiveCount = archiveEntries.length;
 
-  selectedDaySummary.textContent = `${formatLongDate(selectedDate)} • ${pluralize(positiveCount, "positive note")} • ${pluralize(archiveCount, "archive entry")}`;
-
+  selectedDaySummary.textContent =
+  `${formatLongDate(selectedDate)} • ${pluralize(positiveCount, "positive note")} • ${pluralize(archiveCount, "archive entry")}`;
   renderEntryList(
     positiveList,
     positiveEntries,

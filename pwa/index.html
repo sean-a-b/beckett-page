@@ -12,14 +12,43 @@
 </head>
 <body>
   <main class="app">
-    <header class="hero card">
-      <div>
-        <p class="eyebrow">Private journal</p>
-        <h1>Journal</h1>
-        <p class="hero-copy">Log what happened, rate it, and keep only what matters.</p>
-      </div>
-      <div class="hero-badge">IndexedDB • offline-first</div>
+
+    <!-- 1. Minimal header -->
+    <header class="mini-header card">
+      <h1>Journal</h1>
     </header>
+  
+    <!-- 2. Random recall (top-level inspiration) -->
+    <section class="card recall-card compact">
+      <blockquote id="recallText">Loading...</blockquote>
+      <div id="recallMeta" class="recall-meta"></div>
+    </section>
+  
+    <!-- 3. Quick entry (primary focus) -->
+    <section class="card composer-card">
+      <textarea id="entryText" placeholder="What did you do?"></textarea>
+  
+      <div id="ratingButtons" class="rating-buttons"></div>
+  
+      <button id="submitBtn" class="primary-btn">Save</button>
+  
+      <p id="message" class="message"></p>
+    </section>
+  
+    <!-- 4. Keep history lower -->
+    <section class="card history-card">
+      <h2>History</h2>
+  
+      <input id="datePicker" type="date" />
+  
+      <h3>Positives</h3>
+      <ul id="positiveList"></ul>
+  
+      <h3>Archive</h3>
+      <ul id="archiveList"></ul>
+    </section>
+  
+  </main>
 
     <section class="stats-grid">
       <article class="card stat-card">
