@@ -373,12 +373,6 @@ button:disabled {
   gap: 12px;
 }
 
-.modal-tabs {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-
 .modal-view {
   display: none;
   min-height: 0;
@@ -502,12 +496,6 @@ input[type="date"] {
   background: rgba(124, 219, 138, 0.16);
   color: var(--accent);
   border: 1px solid rgba(124, 219, 138, 0.25);
-}
-
-.badge.archive {
-  background: rgba(246, 197, 107, 0.15);
-  color: var(--warn);
-  border: 1px solid rgba(246, 197, 107, 0.25);
 }
 
 .empty-state {

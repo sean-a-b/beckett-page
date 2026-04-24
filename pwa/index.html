@@ -36,15 +36,16 @@
       </article>
 
       <article class="card stat-card">
-        <span class="stat-label">Today’s archive</span>
-        <strong id="todayArchiveValue" class="stat-value">0</strong>
-        <span class="stat-detail">saved entries</span>
+        <span class="stat-label">Insights</span>
+        <button id="insightsBtn" class="primary-btn" type="button">Open</button>
+        <span class="stat-detail">graph + calendar</span>
       </article>
     </section>
 
     <section class="card recall-card compact">
       <div class="section-heading">
         <h2>Random recall</h2>
+        <button id="randomButton" class="ghost-btn" type="button">Another one</button>
       </div>
       <blockquote id="recallText" class="recall-text">Add a positive entry and I’ll pull one back at random.</blockquote>
       <div id="recallMeta" class="recall-meta"></div>
@@ -67,64 +68,35 @@
 
       <p id="message" class="message" role="status" aria-live="polite"></p>
     </section>
-
-    <section class="card footer-actions">
-      <button id="randomButton" class="ghost-btn" type="button">Another recall</button>
-      <button id="insightsBtn" class="ghost-btn" type="button">Insights</button>
-    </section>
   </main>
 
-  <div id="insightsModal" class="modal" aria-hidden="true">
+  <div id="insightsModal" class="modal" hidden aria-hidden="true">
     <div class="modal-backdrop" data-close-modal></div>
 
     <div class="modal-panel card" role="dialog" aria-modal="true" aria-labelledby="insightsTitle">
       <div class="modal-header">
         <div>
           <h2 id="insightsTitle">Insights</h2>
-          <p class="section-hint">History, calendar, and graph.</p>
+          <p class="section-hint">Graph, calendar, and day view.</p>
         </div>
         <button id="closeModalBtn" class="ghost-btn" type="button">Close</button>
       </div>
 
-      <div class="modal-tabs" role="tablist" aria-label="Insights views">
-        <button id="historyTabBtn" class="tab-btn is-active" type="button" aria-selected="true">History</button>
-        <button id="calendarTabBtn" class="tab-btn" type="button" aria-selected="false">Calendar</button>
-        <button id="graphTabBtn" class="tab-btn" type="button" aria-selected="false">Graph</button>
-      </div>
-
-      <section id="historyView" class="modal-view is-active" aria-labelledby="historyTabBtn">
+      <section id="graphView" class="modal-view is-active" aria-labelledby="insightsTitle">
         <div class="section-heading">
-          <h3>History</h3>
-          <div class="history-controls">
-            <button id="todayBtn" class="ghost-btn" type="button">Today</button>
-            <button id="exportBtn" class="ghost-btn" type="button">Export JSON</button>
-            <label class="archive-toggle">
-              <input id="archiveToggle" type="checkbox" />
-              <span>Show archive</span>
-            </label>
-            <input id="datePicker" type="date" />
+          <div>
+            <h3>Positive momentum</h3>
+            <p class="section-hint">Centered 7-day rolling total.</p>
           </div>
+          <div id="graphSummary" class="graph-summary"></div>
         </div>
 
-        <div id="selectedDaySummary" class="day-summary"></div>
-
-        <div class="history-grid">
-          <div class="history-column">
-            <h4>Positives</h4>
-            <ul id="positiveList" class="entry-list"></ul>
-          </div>
-
-          <div class="history-column archive-column">
-            <div class="history-column-header">
-              <h4>Archive</h4>
-              <span class="section-hint">Hidden by default</span>
-            </div>
-            <ul id="archiveList" class="entry-list"></ul>
-          </div>
+        <div class="graph-wrap">
+          <svg id="graphSvg" viewBox="0 0 1000 320" preserveAspectRatio="none" aria-label="Positive momentum chart"></svg>
         </div>
       </section>
 
-      <section id="calendarView" class="modal-view" aria-labelledby="calendarTabBtn">
+      <section id="calendarView" class="modal-view is-active" aria-labelledby="insightsTitle">
         <div class="section-heading">
           <div>
             <h3>Calendar</h3>
@@ -132,6 +104,7 @@
           </div>
 
           <div class="month-controls">
+            <button id="todayBtn" class="ghost-btn" type="button">Today</button>
             <button id="prevMonthBtn" class="ghost-btn" type="button">←</button>
             <span id="monthLabel" class="month-label"></span>
             <button id="nextMonthBtn" class="ghost-btn" type="button">→</button>
@@ -145,18 +118,16 @@
         <div id="calendarGrid" class="calendar-grid"></div>
       </section>
 
-      <section id="graphView" class="modal-view" aria-labelledby="graphTabBtn">
+      <section id="dayView" class="modal-view" hidden aria-labelledby="dayViewTitle">
         <div class="section-heading">
           <div>
-            <h3>Positive momentum</h3>
-            <p class="section-hint">Centered 7-day rolling total.</p>
+            <h3 id="dayViewTitle">Day entries</h3>
+            <p id="selectedDaySummary" class="section-hint"></p>
           </div>
-          <div id="graphSummary" class="graph-summary"></div>
+          <button id="backToCalendarBtn" class="ghost-btn" type="button">Back to calendar</button>
         </div>
 
-        <div class="graph-wrap">
-          <svg id="graphSvg" viewBox="0 0 1000 320" preserveAspectRatio="none" aria-label="Positive momentum chart"></svg>
-        </div>
+        <ul id="dayEntryList" class="entry-list"></ul>
       </section>
     </div>
   </div>

@@ -14,28 +14,15 @@ const insightsModal = document.getElementById("insightsModal");
 const closeModalBtn = document.getElementById("closeModalBtn");
 const modalBackdrop = insightsModal.querySelector("[data-close-modal]");
 
-const historyTabBtn = document.getElementById("historyTabBtn");
-const calendarTabBtn = document.getElementById("calendarTabBtn");
-const graphTabBtn = document.getElementById("graphTabBtn");
-
-const historyView = document.getElementById("historyView");
-const calendarView = document.getElementById("calendarView");
-const graphView = document.getElementById("graphView");
-
 const todayBtn = document.getElementById("todayBtn");
-const exportBtn = document.getElementById("exportBtn");
-const datePicker = document.getElementById("datePicker");
-const archiveToggle = document.getElementById("archiveToggle");
+const prevMonthBtn = document.getElementById("prevMonthBtn");
+const nextMonthBtn = document.getElementById("nextMonthBtn");
 
 const selectedDaySummary = document.getElementById("selectedDaySummary");
-const positiveList = document.getElementById("positiveList");
-const archiveList = document.getElementById("archiveList");
-const archiveColumn = document.querySelector(".archive-column");
+const dayEntryList = document.getElementById("dayEntryList");
 
 const calendarGrid = document.getElementById("calendarGrid");
 const monthLabel = document.getElementById("monthLabel");
-const prevMonthBtn = document.getElementById("prevMonthBtn");
-const nextMonthBtn = document.getElementById("nextMonthBtn");
 const calendarSummary = document.getElementById("calendarSummary");
 
 const graphSvg = document.getElementById("graphSvg");
@@ -45,9 +32,11 @@ const streakValue = document.getElementById("streakValue");
 const streakDetail = document.getElementById("streakDetail");
 const bestStreakValue = document.getElementById("bestStreakValue");
 const todayPositiveValue = document.getElementById("todayPositiveValue");
-const todayArchiveValue = document.getElementById("todayArchiveValue");
 
-const ARCHIVE_VISIBLE_KEY = "journalArchiveVisible";
+const graphView = document.getElementById("graphView");
+const calendarView = document.getElementById("calendarView");
+const dayView = document.getElementById("dayView");
+const backToCalendarBtn = document.getElementById("backToCalendarBtn");
 
 let allEntries = [];
 let selectedDate = todayISO();
@@ -58,8 +47,6 @@ let visibleMonth = (() => {
 let currentRecallEntry = null;
 let messageTimer = null;
 let selectedRating = null;
-let archiveVisible = false;
-let activeInsightsView = "history";
 
 function pad(value) {
   return String(value).padStart(2, "0");
@@ -307,7 +294,6 @@ function renderEntryList(listElement, entries, emptyText) {
 function renderStats() {
   const todayEntries = getEntriesForDate(todayISO());
   const todayPositives = todayEntries.filter((entry) => entry.kind === "positive").length;
-  const todayArchives = todayEntries.filter((entry) => entry.kind === "archive").length;
   const positiveDateSet = getPositiveDateSet();
 
   const currentStreak = computeCurrentStreak(positiveDateSet);
@@ -317,35 +303,18 @@ function renderStats() {
   streakDetail.textContent = currentStreak === 1 ? "day in a row" : "days in a row";
   bestStreakValue.textContent = String(bestStreak);
   todayPositiveValue.textContent = String(todayPositives);
-  todayArchiveValue.textContent = String(todayArchives);
 }
 
-function renderSelectedDayView() {
-  const positiveEntries = getEntriesForDate(selectedDate, "positive");
-  const archiveEntries = getEntriesForDate(selectedDate, "archive");
+function renderDayView() {
+  const dayEntries = getEntriesForDate(selectedDate);
 
-  selectedDaySummary.textContent =
-    `${formatLongDate(selectedDate)} • ${pluralize(positiveEntries.length, "positive note")}`;
+  selectedDaySummary.textContent = `${formatLongDate(selectedDate)} • ${pluralize(dayEntries.length, "entry")}`;
 
   renderEntryList(
-    positiveList,
-    positiveEntries,
-    "No positive notes on this day."
+    dayEntryList,
+    dayEntries,
+    "No entries on this day."
   );
-
-  if (archiveColumn) {
-    archiveColumn.hidden = !archiveVisible;
-  }
-
-  if (archiveVisible) {
-    renderEntryList(
-      archiveList,
-      archiveEntries,
-      "No archive entries on this day."
-    );
-  } else {
-    archiveList.innerHTML = "";
-  }
 }
 
 function renderCalendar() {
@@ -406,14 +375,14 @@ function renderCalendar() {
 
     if (!isFuture) {
       cell.addEventListener("click", () => {
-        goToDate(iso);
-        openInsightsModal("history");
+        openDayView(iso);
       });
     }
 
     calendarGrid.appendChild(cell);
   }
 
+  prevMonthBtn.disabled = false;
   nextMonthBtn.disabled = visibleMonth.year === today.getFullYear() && visibleMonth.month === today.getMonth();
 }
 
@@ -447,15 +416,20 @@ function renderGraph() {
   const positiveEntries = getPositiveEntries();
   const countMap = buildCountMap(positiveEntries);
 
+  if (!positiveEntries.length) {
+    graphSummary.textContent = "No positive entries yet.";
+    graphSvg.innerHTML = "";
+    return;
+  }
+
   const spanDays = 30;
   const endDate = toLocalDate(todayISO());
-  const startDate = addDays(endDate, -(spanDays - 1));
 
   const series = [];
   let maxValue = 1;
 
   for (let index = 0; index < spanDays; index += 1) {
-    const day = addDays(startDate, index);
+    const day = addDays(endDate, -(spanDays - 1 - index));
     let total = 0;
 
     for (let offset = -3; offset <= 3; offset += 1) {
@@ -538,25 +512,73 @@ function renderGraph() {
   `;
 }
 
+function renderInsights() {
+  renderGraph();
+  renderCalendar();
+  if (!dayView.hidden) {
+    renderDayView();
+  }
+}
+
 function renderAll(options = {}) {
   renderStats();
-  renderSelectedDayView();
+  renderDayView();
   renderCalendar();
   renderGraph();
   renderRandomRecall(Boolean(options.forceRecall));
 }
 
+function openInsights() {
+  insightsModal.hidden = false;
+  insightsModal.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+  document.documentElement.style.overflow = "hidden";
+
+  showCalendarView();
+  renderInsights();
+  closeModalBtn.focus();
+}
+
+function closeInsights() {
+  insightsModal.hidden = true;
+  insightsModal.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+  document.documentElement.style.overflow = "";
+  entryText.focus();
+}
+
+function showCalendarView() {
+  graphView.hidden = false;
+  calendarView.hidden = false;
+  dayView.hidden = true;
+
+  graphView.classList.add("is-active");
+  calendarView.classList.add("is-active");
+  dayView.classList.remove("is-active");
+}
+
+function openDayView(dateISO) {
+  selectedDate = dateISO;
+  renderDayView();
+
+  graphView.hidden = false;
+  calendarView.hidden = true;
+  dayView.hidden = false;
+
+  graphView.classList.add("is-active");
+  calendarView.classList.remove("is-active");
+  dayView.classList.add("is-active");
+}
+
 function goToDate(dateISO) {
   selectedDate = dateISO;
-  datePicker.value = dateISO;
-
-  const localDate = toLocalDate(dateISO);
   visibleMonth = {
-    year: localDate.getFullYear(),
-    month: localDate.getMonth()
+    year: toLocalDate(dateISO).getFullYear(),
+    month: toLocalDate(dateISO).getMonth()
   };
 
-  renderAll({ forceRecall: false });
+  renderCalendar();
+  renderDayView();
 }
 
 function goToPreviousMonth() {
@@ -572,13 +594,13 @@ function goToPreviousMonth() {
 }
 
 function goToNextMonth() {
-  const currentMonth = new Date();
+  const today = new Date();
   const next = new Date(visibleMonth.year, visibleMonth.month, 1);
   next.setMonth(next.getMonth() + 1);
 
   if (
-    next.getFullYear() > currentMonth.getFullYear() ||
-    (next.getFullYear() === currentMonth.getFullYear() && next.getMonth() > currentMonth.getMonth())
+    next.getFullYear() > today.getFullYear() ||
+    (next.getFullYear() === today.getFullYear() && next.getMonth() > today.getMonth())
   ) {
     return;
   }
@@ -589,114 +611,6 @@ function goToNextMonth() {
   };
 
   renderCalendar();
-}
-
-function loadArchivePreference() {
-  try {
-    const stored = localStorage.getItem(ARCHIVE_VISIBLE_KEY);
-    return stored === "true";
-  } catch {
-    return false;
-  }
-}
-
-function saveArchivePreference(value) {
-  try {
-    localStorage.setItem(ARCHIVE_VISIBLE_KEY, String(value));
-  } catch {
-    // ignore storage failures
-  }
-}
-
-function setArchiveVisibility(value, persist = true) {
-  archiveVisible = Boolean(value);
-  archiveToggle.checked = archiveVisible;
-
-  if (archiveColumn) {
-    archiveColumn.hidden = !archiveVisible;
-  }
-
-  if (persist) {
-    saveArchivePreference(archiveVisible);
-  }
-
-  renderSelectedDayView();
-}
-
-function openInsightsModal(viewName = activeInsightsView) {
-  activeInsightsView = viewName;
-  setActiveInsightsView(viewName);
-
-  insightsModal.hidden = false;
-  insightsModal.setAttribute("aria-hidden", "false");
-  document.body.style.overflow = "hidden";
-  document.documentElement.style.overflow = "hidden";
-}
-
-function closeInsightsModal() {
-  insightsModal.hidden = true;
-  insightsModal.setAttribute("aria-hidden", "true");
-  document.body.style.overflow = "";
-  document.documentElement.style.overflow = "";
-}
-
-function setActiveInsightsView(viewName) {
-  activeInsightsView = viewName;
-
-  const views = {
-    history: historyView,
-    calendar: calendarView,
-    graph: graphView
-  };
-
-  const tabs = {
-    history: historyTabBtn,
-    calendar: calendarTabBtn,
-    graph: graphTabBtn
-  };
-
-  Object.entries(views).forEach(([name, view]) => {
-    view.hidden = name !== viewName;
-    view.classList.toggle("is-active", name === viewName);
-  });
-
-  Object.entries(tabs).forEach(([name, tab]) => {
-    tab.classList.toggle("is-active", name === viewName);
-    tab.setAttribute("aria-selected", name === viewName ? "true" : "false");
-  });
-
-  if (viewName === "calendar") {
-    renderCalendar();
-  } else if (viewName === "graph") {
-    renderGraph();
-  } else {
-    renderSelectedDayView();
-  }
-}
-
-function exportEntries() {
-  const payload = {
-    exportedAt: new Date().toISOString(),
-    app: "Journal",
-    version: 2,
-    entries: [...allEntries].sort((a, b) => a.timestamp - b.timestamp)
-  };
-
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = `journal-export-${todayISO()}.json`;
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-
-  window.setTimeout(() => {
-    URL.revokeObjectURL(url);
-  }, 1000);
-
-  setMessage("Exported JSON.", "tone-positive");
 }
 
 function ratingOutcomeMessage(rating) {
@@ -754,7 +668,7 @@ async function handleSubmit() {
   entryText.value = "";
   clearSelectedRating();
 
-  goToDate(todayISO());
+  selectedDate = todayISO();
   renderAll({ forceRecall: rating > 6 });
   entryText.focus();
 }
@@ -762,24 +676,18 @@ async function handleSubmit() {
 function setup() {
   createRatingButtons();
 
-  archiveVisible = loadArchivePreference();
-  setArchiveVisibility(archiveVisible, false);
-
   selectedDate = todayISO();
   visibleMonth = {
     year: new Date().getFullYear(),
     month: new Date().getMonth()
   };
 
-  datePicker.value = selectedDate;
-  datePicker.max = todayISO();
-
-  setActiveInsightsView("history");
+  renderAll({ forceRecall: true });
+  showCalendarView();
   insightsModal.hidden = true;
   insightsModal.setAttribute("aria-hidden", "true");
 
   entryText.focus();
-  renderAll({ forceRecall: true });
 }
 
 submitBtn.addEventListener("click", () => {
@@ -793,36 +701,14 @@ randomButton.addEventListener("click", () => {
   renderRandomRecall(true);
 });
 
-insightsBtn.addEventListener("click", () => {
-  openInsightsModal(activeInsightsView);
-});
-
-closeModalBtn.addEventListener("click", closeInsightsModal);
-modalBackdrop.addEventListener("click", closeInsightsModal);
-
-historyTabBtn.addEventListener("click", () => setActiveInsightsView("history"));
-calendarTabBtn.addEventListener("click", () => setActiveInsightsView("calendar"));
-graphTabBtn.addEventListener("click", () => setActiveInsightsView("graph"));
+insightsBtn.addEventListener("click", openInsights);
+closeModalBtn.addEventListener("click", closeInsights);
+modalBackdrop.addEventListener("click", closeInsights);
+backToCalendarBtn.addEventListener("click", showCalendarView);
 
 todayBtn.addEventListener("click", () => {
   goToDate(todayISO());
-  setActiveInsightsView("history");
-});
-
-exportBtn.addEventListener("click", () => {
-  exportEntries();
-});
-
-datePicker.addEventListener("change", () => {
-  if (!datePicker.value) {
-    return;
-  }
-
-  goToDate(datePicker.value);
-});
-
-archiveToggle.addEventListener("change", () => {
-  setArchiveVisibility(archiveToggle.checked, true);
+  showCalendarView();
 });
 
 prevMonthBtn.addEventListener("click", () => {
@@ -835,7 +721,7 @@ nextMonthBtn.addEventListener("click", () => {
 
 window.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !insightsModal.hidden) {
-    closeInsightsModal();
+    closeInsights();
   }
 });
 
