@@ -25,7 +25,6 @@ const todayPositiveValue = document.getElementById("todayPositiveValue");
 const todayArchiveValue = document.getElementById("todayArchiveValue");
 
 let allEntries = [];
-let selectedRating = null;
 let selectedDate = todayISO();
 let visibleMonth = (() => {
   const now = new Date();
@@ -142,20 +141,29 @@ function setSelectedRating(rating, buttonElement) {
   }
 }
 
+const ratingButtons = document.getElementById("ratingButtons");
+const ratingValue = document.getElementById("ratingValue");
+
+let selectedRating = null;
+
 function createRatingButtons() {
-  ratingContainer.innerHTML = "";
+  ratingButtons.innerHTML = "";
 
-  for (let rating = 0; rating <= 10; rating += 1) {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.textContent = rating;
-    button.setAttribute("aria-pressed", "false");
+  for (let i = 1; i <= 10; i++) {
+    const btn = document.createElement("button");
+    btn.textContent = i;
 
-    button.addEventListener("click", () => {
-      setSelectedRating(rating, button);
+    btn.addEventListener("click", () => {
+      selectedRating = i;
+      ratingValue.textContent = i;
+
+      document.querySelectorAll(".rating-strip button")
+        .forEach(b => b.classList.remove("selected"));
+
+      btn.classList.add("selected");
     });
 
-    ratingContainer.appendChild(button);
+    ratingButtons.appendChild(btn);
   }
 }
 
@@ -294,7 +302,8 @@ function renderSelectedDayView() {
   const archiveCount = archiveEntries.length;
 
   selectedDaySummary.textContent =
-  `${formatLongDate(selectedDate)} • ${pluralize(positiveCount, "positive note")} • ${pluralize(archiveCount, "archive entry")}`;
+  `${formatLongDate(selectedDate)} • ${pluralize(positiveCount, "positive note")}`;
+ 
   renderEntryList(
     positiveList,
     positiveEntries,
