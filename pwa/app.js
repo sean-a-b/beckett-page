@@ -1,28 +1,53 @@
 const entryText = document.getElementById("entryText");
 const submitBtn = document.getElementById("submitBtn");
 const message = document.getElementById("message");
-const positiveList = document.getElementById("positiveList");
-const archiveList = document.getElementById("archiveList");
-const ratingContainer = document.getElementById("ratingButtons");
+
+const ratingButtons = document.getElementById("ratingButtons");
+const ratingValue = document.getElementById("ratingValue");
+
 const randomButton = document.getElementById("randomButton");
 const recallText = document.getElementById("recallText");
 const recallMeta = document.getElementById("recallMeta");
+
+const insightsBtn = document.getElementById("insightsBtn");
+const insightsModal = document.getElementById("insightsModal");
+const closeModalBtn = document.getElementById("closeModalBtn");
+const modalBackdrop = insightsModal.querySelector("[data-close-modal]");
+
+const historyTabBtn = document.getElementById("historyTabBtn");
+const calendarTabBtn = document.getElementById("calendarTabBtn");
+const graphTabBtn = document.getElementById("graphTabBtn");
+
+const historyView = document.getElementById("historyView");
+const calendarView = document.getElementById("calendarView");
+const graphView = document.getElementById("graphView");
+
 const todayBtn = document.getElementById("todayBtn");
 const exportBtn = document.getElementById("exportBtn");
 const datePicker = document.getElementById("datePicker");
+const archiveToggle = document.getElementById("archiveToggle");
+
 const selectedDaySummary = document.getElementById("selectedDaySummary");
+const positiveList = document.getElementById("positiveList");
+const archiveList = document.getElementById("archiveList");
+const archiveColumn = document.querySelector(".archive-column");
+
 const calendarGrid = document.getElementById("calendarGrid");
 const monthLabel = document.getElementById("monthLabel");
 const prevMonthBtn = document.getElementById("prevMonthBtn");
 const nextMonthBtn = document.getElementById("nextMonthBtn");
 const calendarSummary = document.getElementById("calendarSummary");
+
 const graphSvg = document.getElementById("graphSvg");
 const graphSummary = document.getElementById("graphSummary");
+
 const streakValue = document.getElementById("streakValue");
 const streakDetail = document.getElementById("streakDetail");
 const bestStreakValue = document.getElementById("bestStreakValue");
 const todayPositiveValue = document.getElementById("todayPositiveValue");
 const todayArchiveValue = document.getElementById("todayArchiveValue");
+
+const ARCHIVE_VISIBLE_KEY = "journalArchiveVisible";
 
 let allEntries = [];
 let selectedDate = todayISO();
@@ -32,6 +57,9 @@ let visibleMonth = (() => {
 })();
 let currentRecallEntry = null;
 let messageTimer = null;
+let selectedRating = null;
+let archiveVisible = false;
+let activeInsightsView = "history";
 
 function pad(value) {
   return String(value).padStart(2, "0");
@@ -127,10 +155,21 @@ function setMessage(text, tone = "tone-muted", autoClear = true) {
   }
 }
 
+function clearSelectedRating() {
+  selectedRating = null;
+  ratingValue.textContent = "—";
+
+  ratingButtons.querySelectorAll("button").forEach((button) => {
+    button.classList.remove("selected");
+    button.setAttribute("aria-pressed", "false");
+  });
+}
+
 function setSelectedRating(rating, buttonElement) {
   selectedRating = rating;
+  ratingValue.textContent = String(rating);
 
-  document.querySelectorAll(".rating-buttons button").forEach((button) => {
+  ratingButtons.querySelectorAll("button").forEach((button) => {
     button.classList.remove("selected");
     button.setAttribute("aria-pressed", "false");
   });
@@ -141,26 +180,17 @@ function setSelectedRating(rating, buttonElement) {
   }
 }
 
-const ratingButtons = document.getElementById("ratingButtons");
-const ratingValue = document.getElementById("ratingValue");
-
-let selectedRating = null;
-
 function createRatingButtons() {
   ratingButtons.innerHTML = "";
 
-  for (let i = 1; i <= 10; i++) {
+  for (let i = 1; i <= 10; i += 1) {
     const btn = document.createElement("button");
-    btn.textContent = i;
+    btn.type = "button";
+    btn.textContent = String(i);
+    btn.setAttribute("aria-pressed", "false");
 
     btn.addEventListener("click", () => {
-      selectedRating = i;
-      ratingValue.textContent = i;
-
-      document.querySelectorAll(".rating-strip button")
-        .forEach(b => b.classList.remove("selected"));
-
-      btn.classList.add("selected");
+      setSelectedRating(i, btn);
     });
 
     ratingButtons.appendChild(btn);
@@ -177,10 +207,6 @@ function getEntriesForDate(dateISO, kind = null) {
 
 function getPositiveEntries() {
   return allEntries.filter((entry) => entry.kind === "positive");
-}
-
-function getArchiveEntries() {
-  return allEntries.filter((entry) => entry.kind === "archive");
 }
 
 function buildCountMap(entries) {
@@ -298,23 +324,28 @@ function renderSelectedDayView() {
   const positiveEntries = getEntriesForDate(selectedDate, "positive");
   const archiveEntries = getEntriesForDate(selectedDate, "archive");
 
-  const positiveCount = positiveEntries.length;
-  const archiveCount = archiveEntries.length;
-
   selectedDaySummary.textContent =
-  `${formatLongDate(selectedDate)} • ${pluralize(positiveCount, "positive note")}`;
- 
+    `${formatLongDate(selectedDate)} • ${pluralize(positiveEntries.length, "positive note")}`;
+
   renderEntryList(
     positiveList,
     positiveEntries,
     "No positive notes on this day."
   );
 
-  renderEntryList(
-    archiveList,
-    archiveEntries,
-    "No archive entries on this day."
-  );
+  if (archiveColumn) {
+    archiveColumn.hidden = !archiveVisible;
+  }
+
+  if (archiveVisible) {
+    renderEntryList(
+      archiveList,
+      archiveEntries,
+      "No archive entries on this day."
+    );
+  } else {
+    archiveList.innerHTML = "";
+  }
 }
 
 function renderCalendar() {
@@ -323,8 +354,6 @@ function renderCalendar() {
   const month = visibleMonth.month;
 
   const monthStart = new Date(year, month, 1);
-  const monthEnd = new Date(year, month + 1, 0);
-
   const positiveEntries = getPositiveEntries();
   const positiveCountMap = buildCountMap(positiveEntries);
   const monthPositiveTotal = positiveEntries.filter((entry) => {
@@ -334,7 +363,6 @@ function renderCalendar() {
 
   monthLabel.textContent = formatMonthLabel(monthStart);
   calendarSummary.textContent = `${pluralize(monthPositiveTotal, "positive note")} this month`;
-
   calendarGrid.innerHTML = "";
 
   const leadingOffset = (monthStart.getDay() + 6) % 7;
@@ -379,6 +407,7 @@ function renderCalendar() {
     if (!isFuture) {
       cell.addEventListener("click", () => {
         goToDate(iso);
+        openInsightsModal("history");
       });
     }
 
@@ -547,7 +576,10 @@ function goToNextMonth() {
   const next = new Date(visibleMonth.year, visibleMonth.month, 1);
   next.setMonth(next.getMonth() + 1);
 
-  if (next.getFullYear() > currentMonth.getFullYear() || (next.getFullYear() === currentMonth.getFullYear() && next.getMonth() > currentMonth.getMonth())) {
+  if (
+    next.getFullYear() > currentMonth.getFullYear() ||
+    (next.getFullYear() === currentMonth.getFullYear() && next.getMonth() > currentMonth.getMonth())
+  ) {
     return;
   }
 
@@ -559,11 +591,94 @@ function goToNextMonth() {
   renderCalendar();
 }
 
+function loadArchivePreference() {
+  try {
+    const stored = localStorage.getItem(ARCHIVE_VISIBLE_KEY);
+    return stored === "true";
+  } catch {
+    return false;
+  }
+}
+
+function saveArchivePreference(value) {
+  try {
+    localStorage.setItem(ARCHIVE_VISIBLE_KEY, String(value));
+  } catch {
+    // ignore storage failures
+  }
+}
+
+function setArchiveVisibility(value, persist = true) {
+  archiveVisible = Boolean(value);
+  archiveToggle.checked = archiveVisible;
+
+  if (archiveColumn) {
+    archiveColumn.hidden = !archiveVisible;
+  }
+
+  if (persist) {
+    saveArchivePreference(archiveVisible);
+  }
+
+  renderSelectedDayView();
+}
+
+function openInsightsModal(viewName = activeInsightsView) {
+  activeInsightsView = viewName;
+  setActiveInsightsView(viewName);
+
+  insightsModal.hidden = false;
+  insightsModal.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+  document.documentElement.style.overflow = "hidden";
+}
+
+function closeInsightsModal() {
+  insightsModal.hidden = true;
+  insightsModal.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+  document.documentElement.style.overflow = "";
+}
+
+function setActiveInsightsView(viewName) {
+  activeInsightsView = viewName;
+
+  const views = {
+    history: historyView,
+    calendar: calendarView,
+    graph: graphView
+  };
+
+  const tabs = {
+    history: historyTabBtn,
+    calendar: calendarTabBtn,
+    graph: graphTabBtn
+  };
+
+  Object.entries(views).forEach(([name, view]) => {
+    view.hidden = name !== viewName;
+    view.classList.toggle("is-active", name === viewName);
+  });
+
+  Object.entries(tabs).forEach(([name, tab]) => {
+    tab.classList.toggle("is-active", name === viewName);
+    tab.setAttribute("aria-selected", name === viewName ? "true" : "false");
+  });
+
+  if (viewName === "calendar") {
+    renderCalendar();
+  } else if (viewName === "graph") {
+    renderGraph();
+  } else {
+    renderSelectedDayView();
+  }
+}
+
 function exportEntries() {
   const payload = {
     exportedAt: new Date().toISOString(),
     app: "Journal",
-    version: 1,
+    version: 2,
     entries: [...allEntries].sort((a, b) => a.timestamp - b.timestamp)
   };
 
@@ -637,12 +752,7 @@ async function handleSubmit() {
   }
 
   entryText.value = "";
-  setSelectedRating(null, null);
-
-  document.querySelectorAll(".rating-buttons button").forEach((button) => {
-    button.classList.remove("selected");
-    button.setAttribute("aria-pressed", "false");
-  });
+  clearSelectedRating();
 
   goToDate(todayISO());
   renderAll({ forceRecall: rating > 6 });
@@ -652,6 +762,9 @@ async function handleSubmit() {
 function setup() {
   createRatingButtons();
 
+  archiveVisible = loadArchivePreference();
+  setArchiveVisibility(archiveVisible, false);
+
   selectedDate = todayISO();
   visibleMonth = {
     year: new Date().getFullYear(),
@@ -660,6 +773,10 @@ function setup() {
 
   datePicker.value = selectedDate;
   datePicker.max = todayISO();
+
+  setActiveInsightsView("history");
+  insightsModal.hidden = true;
+  insightsModal.setAttribute("aria-hidden", "true");
 
   entryText.focus();
   renderAll({ forceRecall: true });
@@ -676,8 +793,20 @@ randomButton.addEventListener("click", () => {
   renderRandomRecall(true);
 });
 
+insightsBtn.addEventListener("click", () => {
+  openInsightsModal(activeInsightsView);
+});
+
+closeModalBtn.addEventListener("click", closeInsightsModal);
+modalBackdrop.addEventListener("click", closeInsightsModal);
+
+historyTabBtn.addEventListener("click", () => setActiveInsightsView("history"));
+calendarTabBtn.addEventListener("click", () => setActiveInsightsView("calendar"));
+graphTabBtn.addEventListener("click", () => setActiveInsightsView("graph"));
+
 todayBtn.addEventListener("click", () => {
   goToDate(todayISO());
+  setActiveInsightsView("history");
 });
 
 exportBtn.addEventListener("click", () => {
@@ -692,12 +821,22 @@ datePicker.addEventListener("change", () => {
   goToDate(datePicker.value);
 });
 
+archiveToggle.addEventListener("change", () => {
+  setArchiveVisibility(archiveToggle.checked, true);
+});
+
 prevMonthBtn.addEventListener("click", () => {
   goToPreviousMonth();
 });
 
 nextMonthBtn.addEventListener("click", () => {
   goToNextMonth();
+});
+
+window.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !insightsModal.hidden) {
+    closeInsightsModal();
+  }
 });
 
 async function boot() {
@@ -716,5 +855,6 @@ boot();
 
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js")
-    .then(() => console.log("Service Worker registered"));
+    .then(() => console.log("Service Worker registered"))
+    .catch((error) => console.warn("Service Worker registration failed:", error));
 }

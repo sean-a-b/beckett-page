@@ -20,15 +20,12 @@ function initDB() {
       const database = event.target.result;
       const tx = event.target.transaction;
 
-      let store;
       if (!database.objectStoreNames.contains(STORE_NAME)) {
-        store = database.createObjectStore(STORE_NAME, { keyPath: "id" });
+        const store = database.createObjectStore(STORE_NAME, { keyPath: "id" });
         store.createIndex("by_date", "date", { unique: false });
         store.createIndex("by_kind", "kind", { unique: false });
         store.createIndex("by_timestamp", "timestamp", { unique: false });
         store.createIndex("by_date_kind", ["date", "kind"], { unique: false });
-      } else {
-        store = tx.objectStore(STORE_NAME);
       }
 
       const migrateLegacyStore = (legacyStoreName, kind) => {
@@ -37,15 +34,18 @@ function initDB() {
         }
 
         const legacyStore = tx.objectStore(legacyStoreName);
-        const getAllRequest = legacyStore.getAll();
+        const requestAll = legacyStore.getAll();
 
-        getAllRequest.onsuccess = () => {
-          const legacyEntries = getAllRequest.result || [];
+        requestAll.onsuccess = () => {
+          const legacyEntries = requestAll.result || [];
           const entriesStore = tx.objectStore(STORE_NAME);
 
           for (const item of legacyEntries) {
             const timestamp = Number.isFinite(item.timestamp) ? item.timestamp : Date.now();
-            const date = typeof item.date === "string" ? item.date : new Date(timestamp).toISOString().slice(0, 10);
+            const date =
+              typeof item.date === "string"
+                ? item.date
+                : new Date(timestamp).toISOString().slice(0, 10);
 
             entriesStore.put({
               id: item.id || createId(),
@@ -83,7 +83,7 @@ function addEntry(entry) {
 
     const tx = db.transaction(STORE_NAME, "readwrite");
     const store = tx.objectStore(STORE_NAME);
-    store.add(entry);
+    store.put(entry);
 
     tx.oncomplete = () => resolve(entry);
     tx.onerror = () => reject(tx.error || new Error("Failed to save entry."));
