@@ -501,12 +501,11 @@ function renderCalendar() {
     }
 
     cell.innerHTML = `
-      <div class="calendar-top">
-        <span class="calendar-day">${day.getDate()}</span>
-        ${count > 0 ? `<span class="calendar-count">${count > 9 ? "9+" : count}</span>` : ""}
-      </div>
-      <span class="calendar-note">${count > 0 ? "positive" : ""}</span>
-    `;
+    <div class="calendar-top">
+      <span class="calendar-day">${day.getDate()}</span>
+    </div>
+    ${count > 0 ? `<span class="calendar-count">${count}</span>` : ""}
+  `;
 
     if (!isFuture) {
       cell.addEventListener("click", () => {

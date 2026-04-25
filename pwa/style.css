@@ -245,7 +245,7 @@ textarea:focus {
 
 .rating-strip button {
   width: 100%;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 1 / 0.6;
   border-radius: 12px;
   border: 1px solid #31405f;
   background: rgba(5, 10, 20, 0.72);
@@ -512,6 +512,9 @@ button:disabled {
   min-height: 0;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .calendar-cell:hover {
@@ -562,6 +565,7 @@ button:disabled {
   background: rgba(124, 219, 138, 0.16);
   color: var(--accent);
   border: 1px solid rgba(124, 219, 138, 0.22);
+  align-self: center;
 }
 
 .calendar-note {
