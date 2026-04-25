@@ -1,8 +1,9 @@
-const CACHE_NAME = "journal-cache-v2";
+const CACHE_NAME = "journal-cache-v3";
 
 const FILES_TO_CACHE = [
   "/pwa/",
   "/pwa/index.html",
+  "/pwa/insights.html",
   "/pwa/style.css",
   "/pwa/app.js",
   "/pwa/db.js",
@@ -36,6 +37,25 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  const url = new URL(event.request.url);
+
+  if (url.origin !== self.location.origin) {
+    return;
+  }
+
+  if (event.request.mode === "navigate") {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const responseCopy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseCopy));
+          return response;
+        })
+        .catch(() => caches.match(event.request).then((cached) => cached || caches.match("/pwa/index.html")))
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
@@ -43,14 +63,11 @@ self.addEventListener("fetch", (event) => {
       }
 
       return fetch(event.request)
-        .then((networkResponse) => {
-          const responseCopy = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseCopy);
-          });
-          return networkResponse;
-        })
-        .catch(() => caches.match("/pwa/index.html"));
+        .then((response) => {
+          const responseCopy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseCopy));
+          return response;
+        });
     })
   );
 });

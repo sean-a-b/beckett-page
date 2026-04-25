@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="theme-color" content="#0f172a" />
+  <title>Journal Insights</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+</head>
+<body>
+  <main class="app insights-app">
+    <header class="mini-header card">
+      <div class="insights-header-row">
+        <div>
+          <h1>Insights</h1>
+          <p class="section-hint">Graph, calendar, and day entries.</p>
+        </div>
+        <a class="ghost-btn insights-home-link" href="index.html">Home</a>
+      </div>
+    </header>
+
+    <section class="card insights-switcher">
+      <button id="graphTabBtn" class="tab-btn is-active" type="button" aria-selected="true">Graph</button>
+      <button id="calendarTabBtn" class="tab-btn" type="button" aria-selected="false">Calendar</button>
+    </section>
+
+    <section id="graphView" class="card insights-panel is-active" aria-labelledby="graphTabBtn">
+      <div class="section-heading">
+        <div>
+          <h2>Positive momentum</h2>
+          <p class="section-hint">7-day rolling total across the last month.</p>
+        </div>
+        <div id="graphSummary" class="graph-summary"></div>
+      </div>
+
+      <div class="graph-wrap">
+        <svg id="graphSvg" viewBox="0 0 1000 320" preserveAspectRatio="none" aria-label="Positive momentum chart"></svg>
+      </div>
+    </section>
+
+    <section id="calendarView" class="card insights-panel" aria-labelledby="calendarTabBtn" hidden>
+      <div class="section-heading">
+        <div>
+          <h2>Calendar</h2>
+          <p id="calendarSummary" class="section-hint"></p>
+        </div>
+
+        <div class="month-controls">
+          <button id="prevMonthBtn" class="ghost-btn" type="button">←</button>
+          <span id="monthLabel" class="month-label"></span>
+          <button id="nextMonthBtn" class="ghost-btn" type="button">→</button>
+        </div>
+      </div>
+
+      <div class="weekday-row">
+        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+      </div>
+
+      <div id="calendarGrid" class="calendar-grid"></div>
+    </section>
+
+    <section id="dayView" class="card insights-panel" hidden aria-labelledby="dayViewTitle">
+      <div class="section-heading">
+        <div>
+          <h2 id="dayViewTitle">Day entries</h2>
+          <p id="selectedDaySummary" class="section-hint"></p>
+        </div>
+        <button id="backToCalendarBtn" class="ghost-btn" type="button">Back to calendar</button>
+      </div>
+
+      <ul id="dayEntryList" class="entry-list"></ul>
+    </section>
+  </main>
+
+  <script src="db.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
