@@ -4,20 +4,23 @@
     <meta charset="UTF-8" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1, viewport-fit=cover"
+      content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no"
     />
-    <meta name="theme-color" content="#0f172a" />
+    <meta name="theme-color" content="#050816" />
     <meta
       name="description"
-      content="A simple closure app for writing a mistake, writing a solution, and closing the file."
+      content="Write a mistake, write a solution, and close the file."
     />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="format-detection" content="telephone=no, email=no, address=no" />
+
     <title>Close the File</title>
 
-    <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="icon" href="/favicon.ico" />
-    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="stylesheet" href="/styles.css" />
     <script defer src="/script.js"></script>
   </head>
@@ -28,16 +31,15 @@
         <div class="card-topline" aria-hidden="true"></div>
 
         <header class="card-header">
-          <p class="eyebrow">Private closure ritual</p>
           <h1 id="app-title">Close the File</h1>
           <p class="subtitle">
-            Write it once. Learn once. Close it. Nothing is saved.
+            Write it once. Learn once.<br>Close it. Nothing is saved.
           </p>
         </header>
 
         <form class="closure-form" id="closure-form" autocomplete="off">
           <div class="field">
-            <label for="mistake">What happened?<br><br></label>
+            <label for="mistake"><br>What happened?<br><br></label>
             <textarea
               id="mistake"
               name="mistake"
@@ -49,7 +51,7 @@
           </div>
 
           <div class="field">
-            <label for="solution"><br>What will I do next time?<br><br></label>
+            <label for="solution"><br><br>What will I do next time?<br><br></label>
             <textarea
               id="solution"
               name="solution"
@@ -65,7 +67,12 @@
           </button>
         </form>
 
-        <section class="success-state" id="success-state" hidden aria-live="polite">
+        <section
+          class="success-state"
+          id="success-state"
+          hidden
+          aria-live="polite"
+        >
           <div class="success-icon" aria-hidden="true">✓</div>
           <h2>File closed</h2>
           <p>Lesson extracted. No further action required.</p>
