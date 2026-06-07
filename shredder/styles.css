@@ -23,6 +23,7 @@ body {
   height: 100%;
   margin: 0;
   overflow: hidden;
+  position: fixed;
 }
 
 body {
@@ -266,4 +267,10 @@ textarea:focus {
   textarea {
     min-height: 96px;
   }
+}
+
+textarea,
+button,
+label {
+  font-size: 16px;
 }
